@@ -8,13 +8,13 @@ template<typename T>
 struct Point2d
 {
     explicit Point2d(const T& _x = 0, const T& _y = 0)
-        : x(_x)
-        , y(_y)
+            : x(_x)
+            , y(_y)
     {}
 
     Point2d(const Point2d& pt)
-        : x(pt.x)
-        , y(pt.y)
+            : x(pt.x)
+            , y(pt.y)
     {}
 
     T x;
@@ -28,9 +28,9 @@ public:
     using point_type = Point2d<Type>;
 
     Triangle(const point_type& p0, const point_type& p1, const point_type& p2)
-        : m_vao(0)
-        , m_vbo(0)
-        , m_points{{p0, p1, p2}}
+            : m_vao(0)
+            , m_vbo(0)
+            , m_points{{p0, p1, p2}}
     {
         load();
     }
@@ -77,3 +77,49 @@ private:
     GLuint m_vbo;
     std::array<point_type, 3> m_points;
 };
+
+int main()
+{
+    const sf::ContextSettings context_settings(24, 8, 4, 4, 6);
+    // crée la fenêtre
+    sf::Window window(sf::VideoMode(800, 600), "OpenGL", sf::Style::Default, context_settings);
+    window.setVerticalSyncEnabled(true);
+
+    // activation de la fenêtre
+    window.setActive(true);
+
+    // chargement des ressources, initialisation des états OpenGL, ...
+
+    // la boucle principale
+    bool running = true;
+    while (running)
+    {
+        // gestion des évènements
+        sf::Event event;
+        while (window.pollEvent(event))
+        {
+            if (event.type == sf::Event::Closed)
+            {
+                // on stoppe le programme
+                running = false;
+            }
+            else if (event.type == sf::Event::Resized)
+            {
+                // on ajuste le viewport lorsque la fenêtre est redimensionnée
+                glViewport(0, 0, event.size.width, event.size.height);
+            }
+        }
+
+        // effacement les tampons de couleur/profondeur
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // dessin...
+
+        // termine la trame courante (en interne, échange les deux tampons de rendu)
+        window.display();
+    }
+
+    // libération des ressources...
+
+    return 0;
+}

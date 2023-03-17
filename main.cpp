@@ -80,6 +80,7 @@ private:
 
 int main()
 {
+    // set version of opengl to 4.6
     const sf::ContextSettings context_settings(24, 8, 4, 4, 6);
     // crée la fenêtre
     sf::Window window(sf::VideoMode(800, 600), "OpenGL", sf::Style::Default, context_settings);
@@ -88,7 +89,21 @@ int main()
     // activation de la fenêtre
     window.setActive(true);
 
+    // fucking lines of hell
+    glewExperimental = GL_TRUE;
+    if (glewInit())
+        throw std::runtime_error("Error init glew");
+
     // chargement des ressources, initialisation des états OpenGL, ...
+    using Point2f = Point2d<float>;
+    using Trianglef = Triangle<float>;
+
+    Point2f p0{ -0.9f, -0.9f };
+    Point2f p1{ 0.9f, -0.9f };
+    Point2f p2{ 0.9f, 0.9f };
+
+
+    Trianglef triangle{ p0, p1, p2 };
 
     // la boucle principale
     bool running = true;
@@ -114,7 +129,8 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // dessin...
-
+        triangle.render();
+        glFlush();
         // termine la trame courante (en interne, échange les deux tampons de rendu)
         window.display();
     }

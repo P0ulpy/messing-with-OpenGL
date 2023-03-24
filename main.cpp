@@ -17,6 +17,18 @@ struct Point2d
 };
 
 template<typename T>
+struct Color
+{
+    explicit Color(const T& r_ = 0, const T& g_ = 0, const T& b_ = 0, const T& a_ = 0): r(r_), g(g_), b(b_), a(a_) {}
+    Color(const Color& color): r(color.r), g(color.g), b(color.b), a(color.a) {}
+
+    T r;
+    T g;
+    T b;
+    T a;
+};
+
+template<typename T>
 class Triangle
 {
 public:
@@ -55,9 +67,7 @@ public:
 
         auto program = Shader::loadShaders(shader);
         glUseProgram(program);
-
-        auto sizeUniform = glGetUniformLocation(program, "size");
-        glUniform2f(sizeUniform, 800, 600);
+        m_program = program;
 
         // le 2 parce qu'on a 2 valeurs par points
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
@@ -69,12 +79,18 @@ public:
     void render()
     {
         glBindVertexArray(m_vao);
+
+        Color<T> c { 1.0f, 1.0f, 0.0f, 1.0f};
+        auto sizeUniform = glGetUniformLocation(m_program, "mySuperColor");
+        glUniform4f(sizeUniform, c.r, c.g, c.b, c.a);
+
         glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(m_vertices.size()));
     }
 
 private:
     GLuint m_vao;
     GLuint m_vbo;
+    GLuint m_program;
     std::array<point_type, 3> m_vertices;
 };
 

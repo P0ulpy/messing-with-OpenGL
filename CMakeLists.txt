@@ -10,6 +10,7 @@ find_package(GLEW REQUIRED)
 
 configure_file(triangles.frag ${CMAKE_CURRENT_BINARY_DIR}/Debug/triangles.frag COPYONLY)
 configure_file(triangles.vert ${CMAKE_CURRENT_BINARY_DIR}/Debug/triangles.vert COPYONLY)
+configure_file(moche2.bmp ${CMAKE_CURRENT_BINARY_DIR}/Debug/moche2.bmp COPYONLY)
 
 add_executable(messing-with-OpenGL main.cpp Shader.cpp Shader.hpp)
 

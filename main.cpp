@@ -1,36 +1,32 @@
-#include "SFML/Window.hpp"
-#include "GL/glew.h"
-#include "SFML/OpenGL.hpp"
+#pragma once
 
+#include <SFML/Window.hpp>
+#include <GL/glew.h>
+#include <SFML/OpenGL.hpp>
 #include <array>
+#include "Shader.hpp"
 
 template<typename T>
 struct Point2d
 {
-    explicit Point2d(const T& _x = 0, const T& _y = 0)
-            : x(_x)
-            , y(_y)
-    {}
-
-    Point2d(const Point2d& pt)
-            : x(pt.x)
-            , y(pt.y)
-    {}
+    explicit Point2d(const T x = 0, const T y = 0): x(x), y(y) {}
+    Point2d(const Point2d& pt): x(pt.x), y(pt.y) {}
 
     T x;
     T y;
 };
 
-template<typename Type>
+template<typename T>
 class Triangle
 {
 public:
-    using point_type = Point2d<Type>;
+    using point_type = Point2d<T>;
 
-    Triangle(const point_type& p0, const point_type& p1, const point_type& p2)
-            : m_vao(0)
-            , m_vbo(0)
-            , m_points{{p0, p1, p2}}
+    Triangle(point_type pt1, point_type pt2, point_type pt3) : m_vao(0), m_vbo(0), m_vertices({ pt1, pt2, pt3 })
+    {
+        load();
+    }
+    explicit Triangle(const std::array<point_type, 3>& points) : m_vao(0), m_vbo(0), m_vertices(points)
     {
         load();
     }
@@ -43,45 +39,51 @@ public:
 
     void load()
     {
-        // We want only one buffer with the id generated and stored in m_vao
         glGenVertexArrays(1, &m_vao);
-
-        // create a new active VAO
         glBindVertexArray(m_vao);
 
-        // we want only one buffer with the id generated and stored in m_vbo
         glGenBuffers(1, &m_vbo);
-
-        // 1. create a new active VBO if doesn’t exist
-        // 2. if the VBO is active it will make it active
-        // 3. if binded to 0, OpenGL stops
         glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
 
-        // Allocate storage size units of OpenGL
-        // Copy data from client to server
-        glBufferData(GL_ARRAY_BUFFER, sizeof(m_points), m_points.data(), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(m_vertices), m_vertices.data(), GL_STATIC_DRAW);
 
+        ShaderInfo shader[] = {
+                { GL_VERTEX_SHADER, "triangles.vert" },
+                { GL_FRAGMENT_SHADER, "triangles.frag" },
+                { GL_NONE, nullptr }
+        };
 
+        auto program = Shader::loadShaders(shader);
+        glUseProgram(program);
+
+        auto sizeUniform = glGetUniformLocation(program, "size");
+        glUniform2f(sizeUniform, 800, 600);
+
+        // le 2 parce qu'on a 2 valeurs par points
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
         glEnableVertexAttribArray(0);
     }
 
+    void release() {}
+
     void render()
     {
         glBindVertexArray(m_vao);
-        glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(m_points.size()));
+        glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(m_vertices.size()));
     }
 
 private:
     GLuint m_vao;
     GLuint m_vbo;
-    std::array<point_type, 3> m_points;
+    std::array<point_type, 3> m_vertices;
 };
+
+
 
 int main()
 {
     // set version of opengl to 4.6
-    const sf::ContextSettings context_settings(24, 8, 4, 4, 6);
+	const sf::ContextSettings context_settings(24, 8, 4, 4, 6);
     // crée la fenêtre
     sf::Window window(sf::VideoMode(800, 600), "OpenGL", sf::Style::Default, context_settings);
     window.setVerticalSyncEnabled(true);
@@ -101,8 +103,6 @@ int main()
     Point2f p0{ -0.9f, -0.9f };
     Point2f p1{ 0.9f, -0.9f };
     Point2f p2{ 0.9f, 0.9f };
-
-
     Trianglef triangle{ p0, p1, p2 };
 
     // la boucle principale

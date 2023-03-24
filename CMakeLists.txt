@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD 20)
 find_package(SFML COMPONENTS system window graphics CONFIG REQUIRED)
 find_package(GLEW REQUIRED)
 
-add_executable(messing-with-OpenGL main.cpp)
+add_executable(messing-with-OpenGL main.cpp Shader.cpp Shader.hpp)
 
 target_link_libraries(messing-with-OpenGL PRIVATE sfml-system sfml-network sfml-graphics sfml-window)
 target_link_libraries(messing-with-OpenGL PRIVATE GLEW::GLEW)

@@ -19,6 +19,17 @@ struct Point2d
 };
 
 template<typename T>
+struct Point3d
+{
+    explicit Point3d(const T x = 0, const T y = 0, const T z = 0): x(x), y(y), z(z) {}
+    Point3d(const Point3d& pt): x(pt.x), y(pt.y), z(pt.z) {}
+
+    T x;
+    T y;
+    T z;
+};
+
+template<typename T>
 struct Color
 {
     Color(const T& r_ = 0, const T& g_ = 0, const T& b_ = 0, const T& a_ = 0): r(r_), g(g_), b(b_), a(a_) {}
@@ -44,6 +55,13 @@ struct vertex_struct_texture
     Point2d<T> t;
 };
 
+template<typename T>
+struct vertex_struct_texture_3D
+{
+    Point3d<T> p;
+    Point2d<T> t;
+};
+
 struct Texture
 {
     Texture(const std::string& filename) : m_texture(0)
@@ -62,7 +80,7 @@ struct Texture
         glBindTexture(GL_TEXTURE_2D, m_texture);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         sf::Image image;
@@ -89,7 +107,7 @@ struct Texture
 template<typename T>
 class Triangle
 {
-    using vertex_type = vertex_struct_texture<T>;
+    using vertex_type = vertex_struct_texture_3D<T>;
 
 public:
     Triangle(const vertex_type& pt1, const vertex_type& pt2, const vertex_type& pt3) : m_vao(0), m_vbo(0), m_vertices({ pt1, pt2, pt3 }), m_texture("moche2.bmp")
@@ -130,7 +148,9 @@ public:
         m_program = program;
 
         // le 2 parce qu'on a 2 valeurs par points
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(vertex_type), 0);
+        /*glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(vertex_type), 0);
+        glEnableVertexAttribArray(0);*/ //Pour 2D
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_type), 0); //Pour 3D
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(vertex_type), (char*)(0) + sizeof(vertex_type::p));
         glEnableVertexAttribArray(1);
@@ -179,14 +199,18 @@ int main()
 
     // chargement des ressources, initialisation des états OpenGL, ...
     using Point2f = Point2d<float>;
+    using Point3f = Point3d<float>;
     using Trianglef = Triangle<float>;
 
     /*vertex_struct_color<float> p0{ Point2f { -0.9f, -0.9f }, { 1.0f, 0.0f, 0.0f, 1.0f } };
     vertex_struct_color<float> p1{ Point2f { 0.9f, -0.9f }, { 0.0f, 1.0f, 0.0f, 1.0f } };
     vertex_struct_color<float> p2{ Point2f { 0.9f, 0.9f }, { 0.0f, 0.0f, 1.0f, 1.0f } };*/
-    vertex_struct_texture<float> p0{ Point2f { -0.9f, -0.9f }, Point2f { -1.0f, -1.0f } };
+    /*vertex_struct_texture<float> p0{ Point2f { -0.9f, -0.9f }, Point2f { -1.0f, -1.0f } };
     vertex_struct_texture<float> p1{ Point2f { 0.9f, -0.9f }, Point2f { 1.0f, -1.0f } };
-    vertex_struct_texture<float> p2{ Point2f { 0.9f, 0.9f }, Point2f { 1.0f, 1.0f } };
+    vertex_struct_texture<float> p2{ Point2f { 0.9f, 0.9f }, Point2f { 1.0f, 1.0f } };*/
+    vertex_struct_texture_3D<float> p0{ Point3f { -0.9f, -0.9f, 0.f }, Point2f { -1.0f, -1.0f } };
+    vertex_struct_texture_3D<float> p1{ Point3f { 0.9f, -0.9f, 0.f }, Point2f { 1.0f, -1.0f } };
+    vertex_struct_texture_3D<float> p2{ Point3f { 0.9f, 0.9f, 0.f }, Point2f { 1.0f, 1.0f } };
     Trianglef triangle(p0, p1, p2);
 
     // la boucle principale

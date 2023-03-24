@@ -30,6 +30,34 @@ struct Point3d
 };
 
 template<typename T>
+struct Mat4
+{
+    Mat4() { for(int i = 0; i < 16 ; ++i) m_data[i] = 0; }
+
+    T& operator() (const int i, const int j) { return m_data[j * 4 + i]; }
+    const T& operator() (const int i, const int j) const { return m_data[j * 4 + i]; }
+
+    std::array<T, 16> m_data;
+};
+
+template<typename T>
+Mat4<T> operator*(const Mat4<T>& lhs, const Mat4<T>& rhs)
+{
+    Mat4<T> result;
+    for (int i = 0; i < 4; ++i)
+    {
+        for (int j = 0; j < 4; ++j)
+        {
+            for (int k = 0; k < 4; ++k)
+            {
+                result(i, j) += lhs(i, k) * rhs(k, j);
+            }
+        }
+    }
+    return result;
+}
+
+template<typename T>
 struct Color
 {
     Color(const T& r_ = 0, const T& g_ = 0, const T& b_ = 0, const T& a_ = 0): r(r_), g(g_), b(b_), a(a_) {}
@@ -158,7 +186,7 @@ public:
 
     void release() {}
 
-    void render()
+    void render(const Mat4<T>& viewprojection)
     {
         glBindVertexArray(m_vao);
 
@@ -166,12 +194,44 @@ public:
         auto sizeUniform = glGetUniformLocation(m_program, "mySuperColor");
         glUniform4f(sizeUniform, c.r, c.g, c.b, c.a);*/
 
+        Mat4<T> model;
+        //Rotation sur l'axe X
+        /*model(0, 0) = std::cos(m_angle);
+        model(0, 1) = std::sin(m_angle);
+        model(1, 0) = -std::sin(m_angle);
+        model(1, 1) = std::cos(m_angle);
+
+         model(2, 2) = 1.0f;*/
+
+        //Rotation sur l'axe Y
+        model(0, 0) = std::cos(m_angle);
+        model(0, 2) = std::sin(m_angle);
+        model(2, 0) = -std::sin(m_angle);
+        model(2, 2) = std::cos(m_angle);
+
+        model(1, 1) = 1.0f;
+        model(3, 3) = 1.0f;
+
+        //Deplacement axe z
+        model(2, 3) = -5.0f;
+
+        Mat4<T> mvp = viewprojection * model;
+
+        auto mvpLocation = glGetUniformLocation(m_program, "model");
+        glUniformMatrix4fv(mvpLocation, 1, GL_FALSE, &mvp.m_data[0]);
+
         m_texture.bind();
 
         glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(m_vertices.size()));
     }
 
+    void update()
+    {
+        m_angle += 0.025f;
+    }
+
 private:
+    T m_angle = 0.0f;
     Texture m_texture;
     GLuint m_vao;
     GLuint m_vbo;
@@ -236,8 +296,28 @@ int main()
         // effacement les tampons de couleur/profondeur
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        Mat4<float> v;
+        v(0, 0) = 1.0f;
+        v(1, 1) = 1.0f;
+        v(2, 2) = 1.0f;
+        v(3, 3) = 1.0f;
+
+        Mat4<float> p;
+        float aspect = 1.0f;
+        float fov = 45.0f / 180.0f * 3.14159265358979323846f;
+        float n = 0.1f;
+        float f = 100.0f;
+        p(0, 0) = 1.0f / (aspect * std::tan(fov / 2.0f));
+        p(1, 1) = 1.0f / std::tan(fov / 2.0f);
+        p(2, 2) = -(f + n) / (f - n);
+        p(2, 3) = -(2.0f * f * n) / (f - n);
+        p(3, 2) = -1.0f;
+
+        Mat4<float> vp = p * v;
+
         // dessin...
-        triangle.render();
+        triangle.update();
+        triangle.render(vp);
         glFlush();
         // termine la trame courante (en interne, échange les deux tampons de rendu)
         window.display();

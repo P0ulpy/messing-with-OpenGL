@@ -1,10 +1,13 @@
 #version 430 core
 
-uniform vec2 size;
 out vec4 FragColor;
-varying vec2 myPosition;
+in vec2 myPosition;
+
+uniform vec4 mySuperColor;
 
 void main() {
-  vec2 coord = gl_FragCoord.xy/size.xy;
-  FragColor = vec4(myPosition.x, myPosition.y, 1.-myPosition.x, 1);
+  vec2 coord = gl_FragCoord.xy/myPosition.xy;
+  FragColor = vec4(coord.x, coord.y, 1.-coord.x, 1);
+
+  FragColor = mySuperColor;
 }

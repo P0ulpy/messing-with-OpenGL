@@ -2,7 +2,7 @@
 
 layout (location = 0) in vec4 vPosition;
 
-varying vec2 myPosition;
+out vec2 myPosition;
 
 void main()
 {

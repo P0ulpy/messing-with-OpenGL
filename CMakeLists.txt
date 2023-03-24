@@ -8,6 +8,9 @@ set(CMAKE_CXX_STANDARD 20)
 find_package(SFML COMPONENTS system window graphics CONFIG REQUIRED)
 find_package(GLEW REQUIRED)
 
+configure_file(triangles.frag ${CMAKE_CURRENT_BINARY_DIR}/Debug/triangles.frag COPYONLY)
+configure_file(triangles.vert ${CMAKE_CURRENT_BINARY_DIR}/Debug/triangles.vert COPYONLY)
+
 add_executable(messing-with-OpenGL main.cpp Shader.cpp Shader.hpp)
 
 target_link_libraries(messing-with-OpenGL PRIVATE sfml-system sfml-network sfml-graphics sfml-window)

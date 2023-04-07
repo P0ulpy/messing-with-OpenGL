@@ -121,25 +121,7 @@ public:
         auto sizeUniform = glGetUniformLocation(m_program, "mySuperColor");
         glUniform4f(sizeUniform, c.r, c.g, c.b, c.a);*/
 
-        Mat4<T> model;
-        //Rotation sur l'axe X
-        /*model(0, 0) = std::cos(m_angle);
-        model(0, 1) = std::sin(m_angle);
-        model(1, 0) = -std::sin(m_angle);
-        model(1, 1) = std::cos(m_angle);
-
-         model(2, 2) = 1.0f;*/
-
-        //Rotation sur l'axe Y
-        model(0, 0) = std::cos(m_angle);
-        model(0, 2) = std::sin(m_angle);
-        model(2, 0) = -std::sin(m_angle);
-        model(2, 2) = std::cos(m_angle);
-
-        model(1, 1) = 1.0f;
-        model(3, 3) = 1.0f;
-
-        //Deplacement axe z
+        Mat4<T> model = Mat4<T>::rotationX(m_angle) * Mat4<T>::rotationY(m_angle) * Mat4<T>::rotationY(m_angle);
         model(2, 3) = -5.0f;
 
         Mat4<T> mvp = viewProjection * model;

@@ -35,18 +35,17 @@ int main()
     using Trianglef = Triangle<float>;
     using Cubef = Cube<float>;
 
-    /*vertex_struct_color<float> p0{ Point2f { -0.9f, -0.9f }, { 1.0f, 0.0f, 0.0f, 1.0f } };
-    vertex_struct_color<float> p1{ Point2f { 0.9f, -0.9f }, { 0.0f, 1.0f, 0.0f, 1.0f } };
-    vertex_struct_color<float> p2{ Point2f { 0.9f, 0.9f }, { 0.0f, 0.0f, 1.0f, 1.0f } };*/
-    /*vertex_struct_texture<float> p0{ Point2f { -0.9f, -0.9f }, Point2f { -1.0f, -1.0f } };
-    vertex_struct_texture<float> p1{ Point2f { 0.9f, -0.9f }, Point2f { 1.0f, -1.0f } };
-    vertex_struct_texture<float> p2{ Point2f { 0.9f, 0.9f }, Point2f { 1.0f, 1.0f } };*/
     vertex_struct_texture_3D<float> p0{ Point3f { -0.9f, -0.9f, 0.f }, Point2f { -1.0f, 1.0f } };
     vertex_struct_texture_3D<float> p1{ Point3f { 0.9f, -0.9f, 0.f }, Point2f { 1.0f, 1.0f } };
     vertex_struct_texture_3D<float> p2{ Point3f { 0.9f, 0.9f, 0.f }, Point2f { 1.0f, -1.0f } };
     Trianglef triangle(p0, p1, p2);
 
     Cubef cube {};
+
+    // Cam
+    Point3f cameraPos { 0.f, 0.f, 0.f };
+    float cameraAlpha = 0;
+    float cameraBeta = 0;
 
     sf::Clock dtClock;
 
@@ -70,16 +69,32 @@ int main()
                 // on ajuste le viewport lorsque la fenêtre est redimensionnée
                 glViewport(0, 0, event.size.width, event.size.height);
             }
+            else if(event.type == sf::Event::KeyPressed)
+            {
+                switch(event.key.code)
+                {
+                case sf::Keyboard::Z:
+                    cameraPos.z += 1 * dt;
+                    break;
+                case sf::Keyboard::S:
+                    cameraPos.z -= 1 * dt;
+                    break;
+                }
+            }
+            else if(event.type == sf::Event::MouseMoved)
+            {
+                cameraAlpha += (event.mouseMove.x - 400) * -0.001f;
+                cameraBeta += (event.mouseMove.y - 300) * 0.001f;
+
+                sf::Mouse::setPosition(sf::Vector2i(400, 300), window);
+            }
         }
 
         // effacement les tampons de couleur/profondeur
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        Mat4<float> v;
-        v(0, 0) = 1.0f;
-        v(1, 1) = 1.0f;
-        v(2, 2) = 1.0f;
-        v(3, 3) = 1.0f;
+        //Mat4<float> v = Mat4<float>::identity();
+        Mat4<float> v = Mat4<float>::rotationX(-cameraBeta) * Mat4<float>::rotationY(-cameraAlpha) * Mat4<float>::translation(-cameraPos.x, -cameraPos.y, -cameraPos.z);
 
         float aspect = 800.f / 600.f;
         float fov = 45.0f / 180.0f * 3.14159265358979323846f;
@@ -90,14 +105,13 @@ int main()
 
         Mat4<float> vp = p * v;
 
-        // dessin...
         //triangle.update(dt);
         //triangle.render(vp);
 
         cube.update(dt);
         cube.render(vp);
         glFlush();
-        // termine la trame courante (en interne, échange les deux tampons de rendu)
+
         window.display();
     }
 
